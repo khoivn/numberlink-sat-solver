@@ -1,0 +1,199 @@
+<html lang="en">
+<head>
+    <title>Numberlink SAT Solver</title>
+    <style>
+        #headingTable td{
+            padding: 5px;
+        }
+
+        colgroup, tbody {
+            border: solid medium;
+        }
+
+        col {
+            width: 20px;
+        }
+
+        .label {
+            width: 200px;
+            display: inline-block;
+        }
+
+        label input, label select {
+            width: 200px;
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+        }
+
+        .center {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%);
+        }
+
+        #numberlinkTable, #numberlinkResultTable, #resultMetric {
+            border-collapse: collapse;
+            font-family: Calibri, sans-serif;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #numberlinkTable td, #numberlinkResultTable td {
+            border: solid thin;
+            height: 1.4em;
+            width: 1.4em;
+            padding: 0;
+            text-align: center;
+        }
+
+        #resultMetric td{
+            border: solid thin;
+            padding: 5px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div style="height: 80px">
+    <div class="center">
+        <table id="headingTable" cellspacing="0" cellpadding="0" style="border: none">
+            <tr>
+                <td>
+                    <div class="label">Width</div>
+                </td>
+                <td>
+                    <input id="width" type="number" min="2">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label">Height</div>
+                </td>
+                <td>
+                    <input id="height" type="number" min="2">
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div style="height: 100px;">
+    <div class="center">
+        <button type="submit" onclick="submit()">Submit</button>
+    </div>
+</div>
+
+
+<div id="numberlink">
+    <table id="numberlinkTable"></table>
+</div>
+
+<div style="display: none; margin-top: 70px; height: 100px" id="solveDiv">
+    <div class="center">
+        <button type="submit" onclick="solve()">Solve</button>
+    </div>
+</div>
+
+<div id="numberlinkResult" style="display: none">
+    <div style="height: 50px">
+        <h3 class="center">Result:</h3>
+    </div>
+    <table id="numberlinkResultTable"></table>
+
+    <table id="resultMetric" style="margin-top: 50px; width: 500px">
+        <tr>
+            <td>Satisfiable:</td>
+            <td>
+                <div id="satisfiable"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>Variables:</td>
+            <td>
+                <div id="numberOfVariable"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>Clauses:</td>
+            <td>
+                <div id="numberOfClause"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>Execution time (ms):</td>
+            <td>
+                <div id="executionTime"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>
+
+<script>
+    const solveDiv = document.getElementById('solveDiv');
+    const table = document.getElementById('numberlinkTable');
+    const tableResult = document.getElementById('numberlinkResultTable');
+    var width, height;
+    var rows = [];
+
+    function buildNumberlink(width, height, target, withData, data) {
+        if (!withData) rows = [];
+        target.innerHTML = '';
+
+        const tbody = document.createElement('tbody');
+        target.appendChild(tbody);
+        for (let i = 0; i < height; i++) {
+            const tr = document.createElement('tr');
+            tbody.appendChild(tr);
+            let row = [];
+            if (!withData) rows.push(row);
+            for (let j=0; j<width; j++){
+                const td = document.createElement('td');
+                const input = document.createElement('input');
+                input.className = "cell";
+                if (withData && data) input.value = data[i][j];
+                tr.appendChild(td);
+                td.appendChild(input);
+                row.push(input)
+            }
+        }
+        solveDiv.style.display = 'block';
+    }
+
+    function submit() {
+        width = document.getElementById("width").value;
+        height = document.getElementById("height").value;
+        buildNumberlink(width, height, table, false);
+    }
+
+    function solve() {
+        const numberlink = rows.map(row => row.map(input => input.value));
+        fetch("solve", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    width: width,
+                    height: height,
+                    data: numberlink
+                })
+            }
+        ).then(response => response.json())
+            .then(data => {
+                buildNumberlink(width, height, tableResult, true, data['result']);
+                document.getElementById('satisfiable').innerText = `${data['satisfiable']}`;
+                document.getElementById('numberOfVariable').innerText = `${data['numberOfVariable']}`;
+                document.getElementById('numberOfClause').innerText = `${data['numberOfClause']}`;
+                document.getElementById('executionTime').innerText = `${data['timeInMilisecond']}`;
+                document.getElementById('numberlinkResult').style.display = 'block';
+            })
+    }
+</script>
