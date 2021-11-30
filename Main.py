@@ -1,4 +1,4 @@
-from NumberlinkSatSolver import NumberlinkSatSolver
+from NumberlinkSatSolverV2 import NumberlinkSatSolver
 
 if __name__ == '__main__':
     WIDTH = 18

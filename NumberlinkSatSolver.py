@@ -37,10 +37,6 @@ class NumberlinkSatSolver:
             for j in range(i + 1, len(variables) - 1):
                 for k in range(j + 1, len(variables)):
                     self.clauses.append([variables[i], variables[j], variables[k]])
-
-        for i in range(len(variables) - 2):
-            for j in range(i + 1, len(variables) - 1):
-                for k in range(j + 1, len(variables)):
                     self.clauses.append([-variables[i], -variables[j], -variables[k]])
 
     def isNumbered(self, i: int, j: int):
